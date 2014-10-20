@@ -82,33 +82,33 @@ var CatModel = {
 
 Sub repeaters are supported, the above JSON can be digested by this template:
 <br />
-<repeater id="catModelRepeater" DataSource="<%# CatModel %>">
+&lt;repeater id="catModelRepeater" DataSource="&lt;%# CatModel %&gt;"&gt;
 <br />
-    <div class="cat <%# class %> <%# name %> <%# color %>">
+    &lt;div class="cat &lt;%# class %&gt; &lt;%# name %&gt; &lt;%# color %&gt;"&gt;
 <br />
-        <div>Type of cat:</div><div class="catName"><%# name %></div>
+        &lt;div&gt;Type of cat:&lt;/div&gt;&lt;div class="catName"&gt;&lt;%# name %&gt;&lt;/div&gt;
 <br />
-        <div>Cat colouring: </div><div class="catColor"><%# color %></div>
+        &lt;div&gt;Cat colouring: &lt;/div&gt;&lt;div class="catColor"&gt;&lt;%# color %&gt;&lt;/div&gt;
 <br />
-        <div>Trips to the Vet: </div>
+        &lt;div&gt;Trips to the Vet: &lt;/div&gt;
 <br />
-        <div style="border:1px solid black;">
+        &lt;div style="border:1px solid black;"&gt;
 <br />
-        <repeater id="vetTripsRepeater" DataSource="<%# TripsToTheVet %>">
+        &lt;repeater id="vetTripsRepeater" DataSource="&lt;%# TripsToTheVet %&gt;"&gt;
 <br />
-            <div class="vetTrips">
+            &lt;div class="vetTrips"&gt;
 <br />
-                <div class="date"><%# date %></div>
+                &lt;div class="date"&gt;&lt;%# date %&gt;&lt;/div&gt;
 <br />
-                <div class="reason"><%# reason %></div>
+                &lt;div class="reason"&gt;&lt;%# reason %&gt;&lt;/div&gt;
 <br />
-            </div>
+            &lt;/div&gt;
 <br />
-        </repeater>
+        &lt;/repeater&gt;
 <br />
-        </div>
+        &lt;/div&gt;
 <br />
-    </div>
+    &lt;/div&gt;
 <br />
-</repeater>
+&lt;/repeater&gt;
 <br />
