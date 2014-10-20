@@ -9,11 +9,15 @@ Supports:
 
 1. loops
 Repeater tags are used in html and digested by templatr. The DataSource property on a repeater must be set to the property name of a JSON object which holds an array:
-
+<br />
 var CatModel = {
+<br />
     CatModel: [
+<br />
             {
+<br />
                 name: "tabby",
+<br />
                 class: "test1",
                 color: "striped black and brown",
                 TripsToTheVet: [
