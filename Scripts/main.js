@@ -33,14 +33,27 @@
         ]
 };
 
-load("/catTemplate.htm", function (response) {
+var catTemplate = '<repeater id="catModelRepeater" DataSource="<%# CatModel %>">';
+catTemplate += '    <div class="cat <%# class %> <%# name %> <%# color %>" data-list="true" data-value="cat">';
+catTemplate += '        <div>Type of cat:</div><div class="catName" data-target="name"><%# name %></div>';
+catTemplate += '        <div>Cat colouring: </div><div class="catColor" data-target="color"><%# color %></div>';
+catTemplate += '        <div>Trips to the Vet: </div>';
+catTemplate += '        <div style="border:1px solid black;">';
+catTemplate += '        <repeater id="vetTripsRepeater" DataSource="<%# TripsToTheVet %>">';
+catTemplate += '            <div class="vetTrips">';
+catTemplate += '                <div class="date"><%# date %></div>';
+catTemplate += '                <div class="reason"><%# reason %></div>';
+catTemplate += '            </div>';
+catTemplate += '        </repeater>';
+catTemplate += '        </div>';
+catTemplate += '    </div>';
+catTemplate += '</repeater>';
 
-    console.log(response);
+
     var t1 = window.performance.now();
 
-    var view = Templatr.bind(response.response, CatModel);
+    var view = Templatr.bind(catTemplate, CatModel);
     document.body.appendChild(view);
 
     var t2 = window.performance.now();
     console.log(t2 - t1); // Number of milliseconds passed
-});
