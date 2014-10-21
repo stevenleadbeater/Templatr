@@ -2,22 +2,17 @@
 
     global.Templatr = global.Templatr || {};
 
-    global.Templatr.HtmlParser = document.createElement("div");
-
     global.Templatr.bind = function (template, data) {
-        global.Templatr.HtmlParser.innerHTML = template;
+        var HtmlParser = document.createElement("div");
+        HtmlParser.innerHTML = template;
         var returnValue;
 
-        for (var i = 0, len = global.Templatr.HtmlParser.children.length; i < len; i++) {
+        for (var i = 0, len = HtmlParser.children.length; i < len; i++) {
 
-            var dataSource = /<%# ([^%>]*) %>/.exec(global.Templatr.HtmlParser.children[i].getAttribute("DataSource"));
-
-            if (global.Templatr.HtmlParser.children[i].tagName == "REPEATER") {
-                if (dataSource != null) {
-                    returnValue = global.Templatr.bindRepeater(global.Templatr.HtmlParser.children[i], data[dataSource[1]]);
-                }
+            if (HtmlParser.children[i].tagName == "REPEATER") {
+                returnValue = global.Templatr.bindRepeater(HtmlParser.children[i], data);
             } else {
-                returnValue = global.Templatr.bindElement(global.Templatr.HtmlParser.children[i], data);
+                returnValue = global.Templatr.bindElement(HtmlParser.children[i], data);
             }
         }
         return returnValue;
@@ -87,58 +82,18 @@
                 break;
             }
 
-            //trim - fucking ie8, get bill gates in hyar!
+            //trim - ie8 compatible
             var propertyName = propertyToBind[1].replace(/^\s+|\s+$/gm, '');
 
             var targetForReplacement = propertyToBind[0];
 
             if (data[propertyName]) {
                 stringToReplaceIn = stringToReplaceIn.replace(targetForReplacement, data[propertyName]);
+            } else {
+                throw new Error('Cannot bind property ' + propertyName);
             }
         }
         return stringToReplaceIn;
     };
 
 })(window);
-
-//simple XHR request in pure JavaScript
-function load(url, callback) {
-    var xhr;
-
-    if (typeof XMLHttpRequest !== 'undefined') xhr = new XMLHttpRequest();
-    else {
-        var versions = ["MSXML2.XmlHttp.5.0",
-			 	"MSXML2.XmlHttp.4.0",
-			 	"MSXML2.XmlHttp.3.0",
-			 	"MSXML2.XmlHttp.2.0",
-			 	"Microsoft.XmlHttp"]
-
-        for (var i = 0, len = versions.length; i < len; i++) {
-            try {
-                xhr = new ActiveXObject(versions[i]);
-                break;
-            }
-            catch (e) { }
-        } // end for
-    }
-
-    xhr.onreadystatechange = ensureReadiness;
-
-    function ensureReadiness() {
-        if (xhr.readyState < 4) {
-            return;
-        }
-
-        if (xhr.status !== 200) {
-            return;
-        }
-
-        // all is well	
-        if (xhr.readyState === 4) {
-            callback(xhr);
-        }
-    }
-
-    xhr.open('GET', url, true);
-    xhr.send('');
-}

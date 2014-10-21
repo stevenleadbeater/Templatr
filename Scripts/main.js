@@ -1,37 +1,35 @@
-﻿var CatModel = {
-    CatModel: [
+﻿var CatModel = [
+    {
+        name: "tabby",
+        class: "test1",
+        color: "striped black and brown",
+        TripsToTheVet: [
             {
-                name: "tabby",
-                class: "test1",
-                color: "striped black and brown",
-                TripsToTheVet: [
-                    {
-                        date: "12/12/2014",
-                        reason: "heaped piles"
-                    },
-                    {
-                        date: "24/12/2014",
-                        reason: "explosive diahorrea"
-                    }
-                ]
+                date: "12/12/2014",
+                reason: "heaped piles"
             },
             {
-                name: "black",
-                class: "test2",
-                color: "black",
-                TripsToTheVet: [
-                    {
-                        date: "11/05/2014",
-                        reason: "got bit by a slug"
-                    },
-                    {
-                        date: "12/05/2014",
-                        reason: "sat in paint and had to be shaved"
-                    }
-                ]
+                date: "24/12/2014",
+                reason: "explosive diahorrea"
             }
         ]
-};
+    },
+    {
+        name: "black",
+        class: "test2",
+        color: "black",
+        TripsToTheVet: [
+            {
+                date: "11/05/2014",
+                reason: "got bit by a slug"
+            },
+            {
+                date: "12/05/2014",
+                reason: "sat in paint and had to be shaved"
+            }
+        ]
+    }
+];
 
 var catTemplate = '<repeater id="catModelRepeater" DataSource="<%# CatModel %>">';
 catTemplate += '    <div class="cat <%# class %> <%# name %> <%# color %>" data-list="true" data-value="cat">';
