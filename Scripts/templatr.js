@@ -2,7 +2,14 @@
 
     global.Templatr = global.Templatr || {};
 
+    global.Templatr.bindings = {};
+
+    global.Templatr.currentElementId = 0;
+
+    global.Templatr.Model;
+
     global.Templatr.bind = function (template, data) {
+        global.Templatr.Model = data;
         var HtmlParser = document.createElement("div");
         HtmlParser.innerHTML = template;
         var returnValue;
@@ -10,43 +17,80 @@
         for (var i = 0, len = HtmlParser.children.length; i < len; i++) {
 
             if (HtmlParser.children[i].tagName == "REPEATER") {
-                returnValue = global.Templatr.bindRepeater(HtmlParser.children[i], data);
+                returnValue = global.Templatr.bindRepeater(HtmlParser.children[i], data, "");
             } else {
-                returnValue = global.Templatr.bindElement(HtmlParser.children[i], data);
+                returnValue = global.Templatr.bindElement(HtmlParser.children[i], data, "");
             }
         }
+        console.log(global.Templatr.bindings);
         return returnValue;
     };
 
-    global.Templatr.bindRepeater = function (repeater, data) {
+    global.Templatr.bindRepeater = function (repeater, data, dataAccessor) {
 
         var currentNode;
         var returnValue = document.createElement("div");
+        var len = data.length;
+
+
+        var elementId = "templatr" + global.Templatr.currentElementId;
+
+        global.Templatr.currentElementId++;
+
+        var att = document.createAttribute("id");
+        att.value = elementId;
+        returnValue.setAttributeNode(att);
+
+        var bindingLog = {
+            elementId: elementId,
+            dataAccessor: dataAccessor,
+            type: "repeater",
+            children: len,
+            repeater: repeater
+        }
+
+        global.Templatr.bindings[dataAccessor] = bindingLog;
+
         //items to bind
-        for (var i = 0, len = data.length; i < len; i++) {
+        if (dataAccessor != "") {
+            dataAccessor += "."
+        }
+        for (var i = 0; i < len; i++) {
 
             for (var j = 0, lenJ = repeater.children.length; j < lenJ; j++) {
-                returnValue.appendChild(global.Templatr.bindElement(repeater.children[j].cloneNode(true), data[i]));
+                returnValue.appendChild(global.Templatr.bindElement(repeater.children[j].cloneNode(true), data[i], dataAccessor + i.toString()));
             }
         }
         return returnValue;
     };
 
-    global.Templatr.bindElement = function (element, data) {
+    global.Templatr.bindElement = function (element, data, dataAccessor) {
 
         var len = element.children.length;
+        var didBind = false;
 
         for (var i = 0, attribLength = element.attributes.length; i < attribLength; i++) {
             var attrib = element.attributes[i];
 
-            attrib.value = global.Templatr.bindingReplacement(attrib.value, data);
-
+            attrib.value = global.Templatr.bindingReplacement(attrib.value, data, dataAccessor, attrib.name);
+            didBind = true;
         }
         if (len == 0) {
-            element.innerText = global.Templatr.bindingReplacement(element.innerText, data);
+            element.innerText = global.Templatr.bindingReplacement(element.innerText, data, dataAccessor, "innerText");
+            didBind = true;
+        }
+
+        if (didBind) {
+
+            var att = document.createAttribute("id");
+            att.value = "templatr" + global.Templatr.currentElementId;
+            element.setAttributeNode(att);
+
+            global.Templatr.currentElementId++;
         }
 
         if (len > 0) {
+
             for (var i = 0; i < len; i++) {
 
                 if (element.children[i].tagName == "REPEATER") {
@@ -55,25 +99,28 @@
 
                     if (dataSource != null) {
 
-                        var repeaterResult = global.Templatr.bindRepeater(element.children[i], data[dataSource[1]]);
+                        var repeaterResult = global.Templatr.bindRepeater(element.children[i], data[dataSource[1]], dataAccessor + "." + dataSource[1]);
                         element.removeChild(element.children[i]);
 
-                        for (var j = 0, lenJ = repeaterResult.children.length; j < lenJ; j++) {
-                            element.appendChild(repeaterResult.children[j].cloneNode(true));
-                        }
+                        element.appendChild(repeaterResult);
+
+                        /*for (var j = 0, lenJ = repeaterResult.children.length; j < lenJ; j++) {
+                        element.appendChild(repeaterResult.children[j].cloneNode(true));
+                        }*/
                     }
                 } else {
-                    global.Templatr.bindElement(element.children[i], data);
+                    global.Templatr.bindElement(element.children[i], data, dataAccessor);
                 }
             }
         }
         return element;
     };
 
-    global.Templatr.bindingReplacement = function (stringToReplaceIn, data) {
+    global.Templatr.bindingReplacement = function (stringToReplaceIn, data, dataAccessor, replacementType) {
 
         var propertyToBind;
         var patt = /<%#([^%>]*)%>/;
+        var replacements = [];
 
         while ((propertyToBind = patt.exec(stringToReplaceIn)) !== null) {
 
@@ -89,6 +136,19 @@
 
             if (data[propertyName]) {
                 stringToReplaceIn = stringToReplaceIn.replace(targetForReplacement, data[propertyName]);
+                var elementId = global.Templatr.currentElementId;
+
+                var bindingLog = {
+                    elementId: "templatr" + elementId,
+                    dataAccessor: dataAccessor + "." + propertyName,
+                    type: "bindingReplacement",
+                    oldValue: targetForReplacement,
+                    newValue: data[propertyName],
+                    replacementType: replacementType
+                }
+
+                global.Templatr.bindings[dataAccessor + "." + propertyName] = bindingLog;
+
             } else {
                 throw new Error('Cannot bind property ' + propertyName);
             }
@@ -96,4 +156,54 @@
         return stringToReplaceIn;
     };
 
+
+    /**
+    * @private Adds all the properties from the obj2 parameter to the obj1 parameter and returns obj1
+    * @param {string} [obj1] passed by reference, the object which will be populated with the new properties
+    * @param {string} [targetValue] The object which holds all the properties which are to be merged
+    */
+    global.Templatr.updateDataModel = function (newDataModel) {
+
+        //iterate over all the properties in the object which is being consumed
+        for (var p in newDataModel) {
+            // Property in destination object set; update its value.
+            if (newDataModel.hasOwnProperty(p) && typeof global.Templatr.Model[p] !== "undefined") {
+                global.Templatr._mergeRecursive(newDataModel[p], global.Templatr.Model[p], p);
+
+            } else {
+                //We don't have that level in the heirarchy so add it
+                global.Templatr.Model[p] = newDataModel[p];
+                var binding = global.Templatr.bindings[""];
+                document.getElementById(binding.elementId).appendChild(global.Templatr.bindRepeater(binding.repeater, [newDataModel[p]], p));
+            }
+        }
+    };
+
+    global.Templatr._mergeRecursive = function (newDataModel, updateTarget, dataAccessor) {
+
+        //iterate over all the properties in the object which is being consumed
+        for (var p in newDataModel) {
+            // Property in destination object set; update its value.
+            if (newDataModel.hasOwnProperty(p) && typeof updateTarget[p] !== "undefined" && typeof updateTarget[p] !== "string") {
+                global.Templatr._mergeRecursive(newDataModel[p], updateTarget[p], dataAccessor + "." + p);
+
+            } else {
+                //We don't have that level in the heirarchy so add it
+                updateTarget[p] = newDataModel[p];
+                var binding = global.Templatr.bindings[dataAccessor + "." + p];
+                if (binding && binding.type == "bindingReplacement") {
+                    var elem = document.getElementById(binding.elementId);
+
+                    if (binding.replacementType == "innerText" && binding.newValue != newDataModel[p]) {
+                        elem.innerText = elem.innerText.replace(binding.newValue, newDataModel[p]);
+                    } else if (binding.newValue != newDataModel[p]) {
+                        elem.attributes[binding.replacementType].value = elem.attributes[binding.replacementType].value.replace(binding.newValue, newDataModel[p]);
+                    }
+                } else {
+                    var binding = global.Templatr.bindings[dataAccessor];
+                    document.getElementById(binding.elementId).appendChild(global.Templatr.bindRepeater(binding.repeater, [newDataModel[p]], p));
+                }
+            }
+        }
+    }
 })(window);
