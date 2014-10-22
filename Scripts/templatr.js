@@ -83,8 +83,19 @@
         if (didBind) {
 
             var att = document.createAttribute("id");
-            att.value = "templatr" + global.Templatr.currentElementId;
+            var elementId = "templatr" + global.Templatr.currentElementId;
+            att.value = elementId;
             element.setAttributeNode(att);
+
+            var bindingLog = {
+                elementId: elementId,
+                dataAccessor: dataAccessor,
+                type: "element",
+                element: element
+            }
+
+            global.Templatr.bindings[dataAccessor] = global.Templatr.bindings[dataAccessor] || [];
+            global.Templatr.bindings[dataAccessor].push(bindingLog);
 
             global.Templatr.currentElementId++;
         }
@@ -157,12 +168,61 @@
     };
 
 
+    global.Templatr.addToRepeater = function (repeater, data, dataAccessor) {
+
+        var currentNode;
+        var returnValue = document.createElement("div");
+
+        var elementId = "templatr" + global.Templatr.currentElementId;
+
+        global.Templatr.currentElementId++;
+
+        var att = document.createAttribute("id");
+        att.value = elementId;
+        returnValue.setAttributeNode(att);
+
+        for (var j = 0, lenJ = repeater.children.length; j < lenJ; j++) {
+
+            var element = global.Templatr.bindElement(repeater.children[j].cloneNode(true), data, dataAccessor);
+
+            returnValue.appendChild(element);
+        }
+
+        return returnValue;
+    };
+
+
     /**
     * @private Adds all the properties from the obj2 parameter to the obj1 parameter and returns obj1
     * @param {string} [obj1] passed by reference, the object which will be populated with the new properties
     * @param {string} [targetValue] The object which holds all the properties which are to be merged
     */
     global.Templatr.updateDataModel = function (newDataModel) {
+
+        //Perform top level removals
+        while (global.Templatr.Model.length > newDataModel.length) {
+
+            for (var i = 0, len = Templatr.bindings[global.Templatr.Model.length - 1].length; i < len; i++) {
+                var topLevelBinding = Templatr.bindings[global.Templatr.Model.length - 1][i];
+                var element = topLevelBinding.element;
+                var targetAccessor = topLevelBinding.dataAccessor;
+
+                element.parentElement.removeChild(element);
+
+            }
+            
+            delete Templatr.bindings[targetAccessor];
+                
+            for (var prop in Templatr.bindings) {
+                if (Templatr.bindings.hasOwnProperty(prop) && prop.indexOf(targetAccessor) != -1) {
+                    delete Templatr.bindings[prop];
+                }
+            }
+            
+            global.Templatr.Model.splice(-1, 1);
+
+            //break;
+        }
 
         //iterate over all the properties in the object which is being consumed
         for (var p in newDataModel) {
@@ -174,12 +234,35 @@
                 //We don't have that level in the heirarchy so add it
                 global.Templatr.Model[p] = newDataModel[p];
                 var binding = global.Templatr.bindings[""];
-                document.getElementById(binding.elementId).appendChild(global.Templatr.bindRepeater(binding.repeater, [newDataModel[p]], p));
+                document.getElementById(binding.elementId).appendChild(global.Templatr.addToRepeater(binding.repeater, newDataModel[p], p));
             }
         }
     };
 
     global.Templatr._mergeRecursive = function (newDataModel, updateTarget, dataAccessor) {
+
+        if (Object.prototype.toString.call(newDataModel) === '[object Array]' && Object.prototype.toString.call(updateTarget) === '[object Array]') {
+            //Perform removals
+            while (updateTarget.length > newDataModel.length) {
+
+                for (var i = 0, len = Templatr.bindings[dataAccessor + "." + (updateTarget.length - 1)].length; i < len; i++) {
+
+                    var element = Templatr.bindings[dataAccessor + "." + (updateTarget.length - 1)][i].element;
+
+                    element.parentElement.removeChild(element);
+
+                }
+                var targetAccessor = dataAccessor + "." + (updateTarget.length - 1);
+                delete Templatr.bindings[targetAccessor];
+                updateTarget.splice(-1, 1)
+                for (var prop in Templatr.bindings) {
+                    if (Templatr.bindings.hasOwnProperty(prop) && prop.indexOf(targetAccessor) != -1) {
+                        delete Templatr.bindings[prop];
+                    }
+                }
+                //break;
+            }
+        }
 
         //iterate over all the properties in the object which is being consumed
         for (var p in newDataModel) {
@@ -201,7 +284,7 @@
                     }
                 } else {
                     var binding = global.Templatr.bindings[dataAccessor];
-                    document.getElementById(binding.elementId).appendChild(global.Templatr.bindRepeater(binding.repeater, [newDataModel[p]], p));
+                    document.getElementById(binding.elementId).appendChild(global.Templatr.addToRepeater(binding.repeater, newDataModel[p], dataAccessor + "." + p));
                 }
             }
         }
