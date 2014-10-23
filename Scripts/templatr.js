@@ -191,6 +191,22 @@
         return returnValue;
     };
 
+    
+    global.Templatr.addToTopLevelRepeater = function (repeater, data, dataAccessor) {
+
+        var currentNode;
+        var returnValue = document.createDocumentFragment();
+
+        for (var j = 0, lenJ = repeater.children.length; j < lenJ; j++) {
+
+            var element = global.Templatr.bindElement(repeater.children[j].cloneNode(true), data, dataAccessor);
+
+            returnValue.appendChild(element);
+        }
+
+        return returnValue;
+    };
+
 
     /**
     * @private Adds all the properties from the obj2 parameter to the obj1 parameter and returns obj1
@@ -234,7 +250,7 @@
                 //We don't have that level in the heirarchy so add it
                 global.Templatr.Model[p] = newDataModel[p];
                 var binding = global.Templatr.bindings[""];
-                document.getElementById(binding.elementId).appendChild(global.Templatr.addToRepeater(binding.repeater, newDataModel[p], p));
+                document.getElementById(binding.elementId).appendChild(global.Templatr.addToTopLevelRepeater(binding.repeater, newDataModel[p], p));
             }
         }
     };
