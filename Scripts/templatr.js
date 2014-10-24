@@ -37,6 +37,13 @@
     */
     global.Templatr.Model;
 
+    /*
+    This is the regex pattern used to indentify the binding statements. Change at will, 
+    the start tag is <%#, the end tag is %> replace those 2 below with whatever you please.
+    eg. /{{([^%>]*)}}/ for mustache style statements.
+    */
+    global.Templatr.Pattern = /<%#([^%>]*)%>/;
+
     /**
     * @public Returns a div containing the result of applying the data parameter to the template
     * @param {string} [template] HTML markup containing repeater tags and data binding statements
@@ -121,14 +128,19 @@
 
             var attrib = element.attributes[i];
 
-            /// TODO: should test attribute value for binding statement before calling this
-            attrib.value = global.Templatr.bindingReplacement(attrib.value, data, dataAccessor, attrib.name);
-            didBind = true;
+            // Check for binding statements and process as applicable
+            if (global.Templatr.Pattern.exec(attrib.value) != null) {
+                attrib.value = global.Templatr.bindingReplacement(attrib.value, data, dataAccessor, attrib.name);
+                didBind = true;
+            }
         }
         if (len == 0) {
-            /// TODO: should test innerText for binding statement before calling this
-            element.innerText = global.Templatr.bindingReplacement(element.innerText, data, dataAccessor, "innerText");
-            didBind = true;
+
+            // Check for binding statements and process as applicable
+            if (global.Templatr.Pattern.exec(element.innerText) != null) {
+                element.innerText = global.Templatr.bindingReplacement(element.innerText, data, dataAccessor, "innerText");
+                didBind = true;
+            }
         }
 
         if (didBind) {
@@ -156,12 +168,12 @@
                 if (element.children[i].tagName == "REPEATER") {
 
                     //This is the property name of an array
-                    var dataSource = /<%# ([^%>]*) %>/.exec(element.children[i].getAttribute("DataSource"));
+                    var dataSource = global.Templatr.Pattern.exec(element.children[i].getAttribute("DataSource"));
 
                     if (dataSource != null) {
 
                         //Repeater is bound
-                        var repeaterResult = global.Templatr.bindRepeater(element.children[i], data[dataSource[1]], dataAccessor + "." + dataSource[1]);
+                        var repeaterResult = global.Templatr.bindRepeater(element.children[i], data[dataSource[1].replace(/^\s+|\s+$/gm, '')], dataAccessor + "." + dataSource[1].replace(/^\s+|\s+$/gm, ''));
 
                         //Swap the template element for the bound element
                         element.removeChild(element.children[i]);
@@ -179,12 +191,11 @@
     global.Templatr.bindingReplacement = function (stringToReplaceIn, data, dataAccessor, replacementType) {
 
         var propertyToBind;
-        var patt = /<%#([^%>]*)%>/;
         var replacements = [];
 
         /*stringToReplaceIn is iterated over using regex to find the first remaining match for data binding statements
         in each iteration*/
-        while ((propertyToBind = patt.exec(stringToReplaceIn)) !== null) {
+        while ((propertyToBind = global.Templatr.Pattern.exec(stringToReplaceIn)) !== null) {
 
             //Everything has been bound so jump out
             if (propertyToBind == null) {
@@ -205,13 +216,21 @@
 
                 var bindingLog = global.Templatr.createBindingReference(global.Templatr.currentElementId, "bindingReplacement", dataAccessor + "." + propertyName);
                 bindingLog["oldValue"] = targetForReplacement;
-                bindingLog["newValue"] = data[propertyName];
+                bindingLog["boundValue"] = data[propertyName];
                 bindingLog["replacementType"] = replacementType;
 
                 global.Templatr.bindings[dataAccessor + "." + propertyName] = bindingLog;
 
             } else {
-                ///TODO: Need way more trace info here. Fully namespace data accessor. Id of the element being bound. Template. Iteration number
+                //Log as much trace information as possible
+                console.log("Throwing error because property '" + propertyName + "' was not found in data: ");
+                console.log(data);
+                console.log("String to replace in:");
+                console.log(stringToReplaceIn);
+                console.log("Target for replacement:");
+                console.log(targetForReplacement);
+
+                //Throw an error
                 throw new Error('Cannot bind property ' + propertyName);
             }
         }
@@ -254,7 +273,7 @@
 
         //Set the id of the container
         returnValue = global.Templatr.setElementId(returnValue);
-        
+
         //For each HTML element inside the repeater
         for (var j = 0, lenJ = repeater.children.length; j < lenJ; j++) {
 
@@ -290,7 +309,7 @@
 
         return returnValue;
     };
-    
+
     global.Templatr.updateDataModel = function (newDataModel) {
 
         /*This function expects the entire data model to be passed. It will re-use as much of what is in the DOM
@@ -302,7 +321,7 @@
             /*Perform top level removals - Templatr.bindings[global.Templatr.Model.length - 1] is the last array of repeater contents
             After the repeater and all the children are removed this binding entry is deleted*/
             for (var i = 0, len = Templatr.bindings[global.Templatr.Model.length - 1].length; i < len; i++) {
-                
+
                 //Rmove the UI element
                 var topLevelBinding = Templatr.bindings[global.Templatr.Model.length - 1][i];
                 var element = topLevelBinding.element;
@@ -352,13 +371,13 @@
 
         // Is this an array (repeater data source)?
         if (Object.prototype.toString.call(newDataModel) === '[object Array]' && Object.prototype.toString.call(updateTarget) === '[object Array]') {
-            
+
             //While there is more data in the new model than the old
             while (updateTarget.length > newDataModel.length) {
-                
+
                 //Start removing elements from the end of the DOM at this level until our model lengths match
                 for (var i = 0, len = Templatr.bindings[dataAccessor + "." + (updateTarget.length - 1)].length; i < len; i++) {
-                    
+
                     //Find and remove DOM element
                     var element = Templatr.bindings[dataAccessor + "." + (updateTarget.length - 1)][i].element;
                     element.parentElement.removeChild(element);
@@ -402,14 +421,12 @@
                     var elem = document.getElementById(binding.elementId);
 
                     //Make sure this value is actually different before attacking the DOM
-                    if (binding.replacementType == "innerText" && binding.newValue != newDataModel[p]) {
-                        //Elements value, binding.newValue was set during the original binding
-                        ///TODO: Sort your nomenclature
-                        elem.innerText = elem.innerText.replace(binding.newValue, newDataModel[p]);
-                    } else if (binding.newValue != newDataModel[p]) {
-                        //attributes value or part of, binding.newValue was set during the original binding
-                        ///TODO: Sort your nomenclature
-                        elem.attributes[binding.replacementType].value = elem.attributes[binding.replacementType].value.replace(binding.newValue, newDataModel[p]);
+                    if (binding.replacementType == "innerText" && binding.boundValue != newDataModel[p]) {
+                        //Elements value
+                        elem.innerText = elem.innerText.replace(binding.boundValue, newDataModel[p]);
+                    } else if (binding.boundValue != newDataModel[p]) {
+                        //attributes value or part of
+                        elem.attributes[binding.replacementType].value = elem.attributes[binding.replacementType].value.replace(binding.boundValue, newDataModel[p]);
                     }
                 } else {
                     //We need to add to our repeater
