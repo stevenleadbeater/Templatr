@@ -214,7 +214,7 @@
             if (data[propertyName]) {
                 stringToReplaceIn = stringToReplaceIn.replace(targetForReplacement, data[propertyName]);
 
-                var bindingLog = global.Templatr.createBindingReference(global.Templatr.currentElementId, "bindingReplacement", dataAccessor + "." + propertyName);
+                var bindingLog = global.Templatr.createBindingReference("templatr" + global.Templatr.currentElementId, "bindingReplacement", dataAccessor + "." + propertyName);
                 bindingLog["oldValue"] = targetForReplacement;
                 bindingLog["boundValue"] = data[propertyName];
                 bindingLog["replacementType"] = replacementType;
@@ -241,7 +241,7 @@
 
         //Centrally manage the assignment of ids to elements        
         var att = document.createAttribute("id");
-        att.value = global.Templatr.currentElementId;
+        att.value = "templatr" + global.Templatr.currentElementId;
         element.setAttributeNode(att);
 
         //increment after assignment
@@ -424,9 +424,11 @@
                     if (binding.replacementType == "innerText" && binding.boundValue != newDataModel[p]) {
                         //Elements value
                         elem.innerText = elem.innerText.replace(binding.boundValue, newDataModel[p]);
+                        binding.boundValue = newDataModel[p];
                     } else if (binding.boundValue != newDataModel[p]) {
                         //attributes value or part of
                         elem.attributes[binding.replacementType].value = elem.attributes[binding.replacementType].value.replace(binding.boundValue, newDataModel[p]);
+                        binding.boundValue = newDataModel[p];
                     }
                 } else {
                     //We need to add to our repeater
