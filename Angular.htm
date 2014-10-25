@@ -10,11 +10,11 @@
 <body>
     <h2>Angular</h2>
     <div>
-            <div><span>Initial: </span><span id="initialLoad"></span></div>
-            <div><span>Model 1 Average: </span><span id="model1"></span></div>
-            <div><span>Model 2 Average: </span><span id="model2"></span></div>
-            <div><span>Model 3 Average: </span><span id="model3"></span></div>
-        </div>
+        <div><span>Initial: </span><span id="initialLoad"></span></div>
+        <div><span>Model 1 Average: </span><span id="model1"></span></div>
+        <div><span>Model 2 Average: </span><span id="model2"></span></div>
+        <div><span>Model 3 Average: </span><span id="model3"></span></div>
+    </div>
     <div ng-controller="catController">
 
         <div ng-repeat="cat in cats" class="cat {{ cat.class }} {{ cat.name }} {{ cat.color }}" data-list="true" data-value="cat">

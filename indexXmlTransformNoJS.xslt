@@ -8,13 +8,17 @@
             </script>
 	    </head>
 	    <body>
+            <h2>XSLT without JS</h2>
+            <div>
+                <div><span>Initial: </span><span id="initialLoad"></span></div>                
+            </div>
 		    <div>        
                 <xsl:apply-templates select="CatModel"/>
             </div>
             <script type="text/javascript">
                 document.addEventListener('DOMContentLoaded', function () { 
                     var t2 = window.performance.now();
-                    console.log("First render: " + (t2 - t1));
+                    document.getElementById("initialLoad").innerText = "First render: " + (t2 - t1);
                 })
             </script>
 	    </body>

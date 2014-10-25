@@ -2,7 +2,30 @@
     <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 	    <head>
 		    <script type="text/javascript">
-		        var t1 = window.performance.now();
+		        var t1, t2;
+		        var averages = {
+		            model1: {
+		                count: 0,
+		                values: []
+		            },
+		            model2: {
+		                count: 0,
+		                values: []
+		            },
+		            model3: {
+		                count: 0,
+		                values: []
+		            }
+		        }
+
+		        var setAverage = function (modelNumber, timeElapsed) {
+		            averages["model" + modelNumber].count++;
+		            averages["model" + modelNumber].values.push(timeElapsed);
+		            var total = 0;
+		            for (var i in averages["model" + modelNumber].values) { total += averages["model" + modelNumber].values[i]; }
+		            return (total / averages["model" + modelNumber].count);
+		        }
+
 		        function loadXMLDoc(filename) {
 		            if (window.ActiveXObject) {
 		                xhttp = new ActiveXObject("Msxml2.XMLHTTP");
@@ -17,9 +40,11 @@
 		        }
 
 		        function displayResult(xmlFile) {
+		            
 		            xml = loadXMLDoc(xmlFile);
 		            xsl = loadXMLDoc("XmlTransform.xslt");
 		            // code for IE
+		            t1 = window.performance.now();
 		            if (window.ActiveXObject || xhttp.responseType == "msxml-document") {
 		                ex = xml.transformNode(xsl);
 		                document.getElementById("example").innerHTML = ex;
@@ -29,19 +54,60 @@
 		                xsltProcessor = new XSLTProcessor();
 		                xsltProcessor.importStylesheet(xsl);
 		                resultDocument = xsltProcessor.transformToFragment(xml, document);
-		                document.getElementById("container").appendChild(resultDocument);
+		                var myNode = document.getElementById("container");
+		                while (myNode.firstChild) {
+		                    myNode.removeChild(myNode.firstChild);
+		                }
+		                myNode.appendChild(resultDocument);
 		            }
+		            t2 = window.performance.now();
 		        }
+
+		        function load() {
+		            displayResult('CatModel1.xml'); 
+                    document.getElementById('model1').innerText = setAverage(1, (t2 - t1)); 
+                    document.getElementById('initialLoad').innerText = setAverage(1, (t2 - t1));
+                }
             </script>
 	    </head>
-	    <body onload="displayResult('CatModel2.xml')">
+	    <body onload="load()">
+            <h2>JS based XSLT</h2>
+            <div>
+                <div><span>Initial: </span><span id="initialLoad"></span></div>
+                <div><span>Model 1 Average: </span><span id="model1"></span></div>
+                <div><span>Model 2 Average: </span><span id="model2"></span></div>
+                <div><span>Model 3 Average: </span><span id="model3"></span></div>
+            </div>
 		    <div id="container">
 
             </div>
             <script type="text/javascript">
                 document.addEventListener('DOMContentLoaded', function () {
-                    var t2 = window.performance.now();
-                    console.log("First render: " + (t2 - t1));
+                    
+                    var modelNumber = 2;
+
+                    setInterval(function () {
+                        
+                        if (modelNumber == 1) {
+                            console.log("Update to model 1");
+                            displayResult('CatModel1.xml');
+                            modelNumber = 2;
+                            
+                            document.getElementById("model1").innerText = setAverage(1, (t2 - t1));
+                        } else if (modelNumber == 2) {
+                            console.log("Update to model 2");
+                            displayResult('CatModel2.xml');
+                            modelNumber = 3;
+                            
+                            document.getElementById("model2").innerText = setAverage(2, (t2 - t1));
+                        } else if (modelNumber == 3) {
+                            console.log("Update to model 3");
+                            displayResult('CatModel3.xml');
+                            modelNumber = 1;
+                            
+                            document.getElementById("model3").innerText = setAverage(3, (t2 - t1));
+                        }
+                    }, 5000);
                 })
             </script>
 	    </body>
