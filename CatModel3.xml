@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml-stylesheet type="text/xsl" href="indexXmlTransformNoJS.xslt"?>
+<CatModels>
+  <CatModel class="test3" name="whitey" color="white">
+    <VetTrips>
+      <VetTrip date="11/05/2014" reason="got bit by a cucumber" />
+    </VetTrips>
+  </CatModel>
+</CatModels>
