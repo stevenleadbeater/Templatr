@@ -368,7 +368,7 @@
         // Is this an array (repeater data source)?
         if (Object.prototype.toString.call(newDataModel) === '[object Array]' && Object.prototype.toString.call(updateTarget) === '[object Array]') {
 
-            //While there is more data in the new model than the old
+            //While there is more data in the old model than the new
             while (updateTarget.length > newDataModel.length) {
 
                 //Start removing elements from the end of the DOM at this level until our model lengths match
