@@ -1,0 +1,28 @@
+﻿#header, .benchmarkItem
+{
+    margin:15px;
+    border-radius:5px;
+    box-shadow:1px 1px 15px grey;    
+    overflow: hidden;
+}
+
+.benchmarkItem 
+{
+    padding:15px;
+    display:inline-block;    
+}
+
+#title
+{
+    background-color: Blue;
+    color:White;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+    font-weight: 300;
+    font-size: 18px;    
+    padding:15px;
+}
+
+.description
+{
+    padding:15px;
+}
