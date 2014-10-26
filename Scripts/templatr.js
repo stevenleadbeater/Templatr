@@ -137,8 +137,8 @@
         if (len == 0) {
 
             // Check for binding statements and process as applicable
-            if (global.Templatr.Pattern.exec(element.innerText) != null) {
-                element.innerText = global.Templatr.bindingReplacement(element.innerText, data, dataAccessor, "innerText");
+            if (element.childNodes[0] && global.Templatr.Pattern.exec(element.childNodes[0].nodeValue) != null) {
+                element.childNodes[0].nodeValue = global.Templatr.bindingReplacement(element.childNodes[0].nodeValue, data, dataAccessor, "innerText");
                 didBind = true;
             }
         }
@@ -320,16 +320,12 @@
 
             /*Perform top level removals - Templatr.bindings[global.Templatr.Model.length - 1] is the last array of repeater contents
             After the repeater and all the children are removed this binding entry is deleted*/
-            for (var i = 0, len = Templatr.bindings[global.Templatr.Model.length - 1].length; i < len; i++) {
+            //Rmove the UI element
+            var topLevelBinding = Templatr.bindings[global.Templatr.Model.length - 1][0];
+            var element = topLevelBinding.element;
+            var targetAccessor = topLevelBinding.dataAccessor;
 
-                //Rmove the UI element
-                var topLevelBinding = Templatr.bindings[global.Templatr.Model.length - 1][i];
-                var element = topLevelBinding.element;
-                var targetAccessor = topLevelBinding.dataAccessor;
-
-                element.parentElement.removeChild(element);
-
-            }
+            element.parentElement.removeChild(element);
 
             //Remove the bindings in the repeaters array
             delete Templatr.bindings[targetAccessor];
@@ -423,7 +419,7 @@
                     //Make sure this value is actually different before attacking the DOM
                     if (binding.replacementType == "innerText" && binding.boundValue != newDataModel[p]) {
                         //Elements value
-                        elem.innerText = elem.innerText.replace(binding.boundValue, newDataModel[p]);
+                        elem.childNodes[0].nodeValue = elem.childNodes[0].nodeValue.replace(binding.boundValue, newDataModel[p]);
                         binding.boundValue = newDataModel[p];
                     } else if (binding.boundValue != newDataModel[p]) {
                         //attributes value or part of
