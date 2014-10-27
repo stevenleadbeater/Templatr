@@ -5,8 +5,12 @@
 	    <head>
             <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
 		    <script type="text/javascript">
-		        var t1 = window.performance.now();
-            </script>
+          try{
+            var t1 = window.performance.now();
+          } catch(ex) {
+            var t1 = new Date().getTime();
+          }
+        </script>
 	    </head>
 	    <body>
             <h2>XSLT without JS</h2>
@@ -17,10 +21,14 @@
                 <xsl:apply-templates select="CatModel"/>
             </div>
             <script type="text/javascript">
-                document.addEventListener('DOMContentLoaded', function () { 
-                    var t2 = window.performance.now();
-                    document.getElementById("initialLoad").innerText = "First render: " + (t2 - t1);
-                })
+              document.addEventListener('DOMContentLoaded', function () {
+              try{
+              var t2 = window.performance.now();
+              } catch(ex) {
+              var t2 = new Date().getTime();
+              }
+              document.getElementById("initialLoad").innerText = "First render: " + (t2 - t1);
+              })
             </script>
 	    </body>
     </html>

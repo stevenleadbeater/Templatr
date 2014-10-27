@@ -1,117 +1,132 @@
 ﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-    <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-	    <head>
-            <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
-		    <script type="text/javascript">
-		        var t1, t2;
-		        var averages = {
-		            model1: {
-		                count: 0,
-		                values: []
-		            },
-		            model2: {
-		                count: 0,
-		                values: []
-		            },
-		            model3: {
-		                count: 0,
-		                values: []
-		            }
-		        }
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" />
+    <script type="text/javascript">
+        var t1, t2;
+        var averages = {
+            model1: {
+                count: 0,
+                values: []
+            },
+            model2: {
+                count: 0,
+                values: []
+            },
+            model3: {
+                count: 0,
+                values: []
+            }
+        }
 
-		        var setAverage = function (modelNumber, timeElapsed) {
-		            averages["model" + modelNumber].count++;
-		            averages["model" + modelNumber].values.push(timeElapsed);
-		            var total = 0;
-		            for (var i in averages["model" + modelNumber].values) { total += averages["model" + modelNumber].values[i]; }
-		            return (total / averages["model" + modelNumber].count);
-		        }
+        var setAverage = function (modelNumber, timeElapsed) {
+            averages["model" + modelNumber].count++;
+            averages["model" + modelNumber].values.push(timeElapsed);
+            var total = 0;
+            for (var i in averages["model" + modelNumber].values) { total += averages["model" + modelNumber].values[i]; }
+            return (total / averages["model" + modelNumber].count);
+        }
 
-		        function loadXMLDoc(filename) {
-		            if (window.ActiveXObject) {
-		                xhttp = new ActiveXObject("Msxml2.XMLHTTP");
-		            }
-		            else {
-		                xhttp = new XMLHttpRequest();
-		            }
-		            xhttp.open("GET", filename, false);
-		            try { xhttp.responseType = "msxml-document" } catch (err) { } // Helping IE11
-		            xhttp.send("");
-		            return xhttp.responseXML;
-		        }
+        function loadXMLDoc(filename) {
+            if (window.ActiveXObject) {
+                xhttp = new ActiveXObject("Msxml2.XMLHTTP");
+            }
+            else {
+                xhttp = new XMLHttpRequest();
+            }
+            xhttp.open("GET", filename, false);
+            try { xhttp.responseType = "msxml-document" } catch (err) { } // Helping IE11
+            xhttp.send("");
+            return xhttp.responseXML;
+        }
 
-		        function displayResult(xmlFile) {
-		            
-		            xml = loadXMLDoc(xmlFile);
-		            xsl = loadXMLDoc("XmlTransform.xslt");
-		            // code for IE
-		            t1 = window.performance.now();
-		            if (window.ActiveXObject || xhttp.responseType == "msxml-document") {
-		                ex = xml.transformNode(xsl);
-		                document.getElementById("example").innerHTML = ex;
-		            }
-		            // code for Chrome, Firefox, Opera, etc.
-		            else if (document.implementation && document.implementation.createDocument) {
-		                xsltProcessor = new XSLTProcessor();
-		                xsltProcessor.importStylesheet(xsl);
-		                resultDocument = xsltProcessor.transformToFragment(xml, document);
-		                var myNode = document.getElementById("container");
-		                while (myNode.firstChild) {
-		                    myNode.removeChild(myNode.firstChild);
-		                }
-		                myNode.appendChild(resultDocument);
-		            }
-		            t2 = window.performance.now();
-		        }
+        function displayResult(xmlFile) {
 
-		        function load() {
-		            displayResult('CatModel1.xml'); 
-                    document.getElementById('model1').innerText = setAverage(1, (t2 - t1)); 
-                    document.getElementById('initialLoad').innerText = setAverage(1, (t2 - t1));
+            xml = loadXMLDoc(xmlFile);
+            xsl = loadXMLDoc("XmlTransform.xslt");
+            // code for IE
+            try {
+                t1 = window.performance.now();
+            } catch (ex) {
+                t1 = new Date().getTime();
+            }
+            if (window.ActiveXObject || xhttp.responseType == "msxml-document") {
+                ex = xml.transformNode(xsl);
+                document.getElementById("example").innerHTML = ex;
+            }
+            // code for Chrome, Firefox, Opera, etc.
+            else if (document.implementation && document.implementation.createDocument) {
+                xsltProcessor = new XSLTProcessor();
+                xsltProcessor.importStylesheet(xsl);
+                resultDocument = xsltProcessor.transformToFragment(xml, document);
+                var myNode = document.getElementById("container");
+                while (myNode.firstChild) {
+                    myNode.removeChild(myNode.firstChild);
                 }
-            </script>
-	    </head>
-	    <body onload="load()">
-            <h2>JS based XSLT</h2>
-            <div>
-                <div><span>Initial: </span><span id="initialLoad"></span></div>
-                <div><span>Model 1 Average: </span><span id="model1"></span></div>
-                <div><span>Model 2 Average: </span><span id="model2"></span></div>
-                <div><span>Model 3 Average: </span><span id="model3"></span></div>
-            </div>
-		    <div id="container">
+                myNode.appendChild(resultDocument);
+            }
+            try {
+                t2 = window.performance.now();
+            } catch (ex) {
+                t2 = new Date().getTime();
+            }
+        }
 
-            </div>
-            <script type="text/javascript">
-                document.addEventListener('DOMContentLoaded', function () {
-                    
-                    var modelNumber = 2;
+        function load() {
+            displayResult('CatModel1.xml');
+            document.getElementById('model1').innerText = setAverage(1, (t2 - t1));
+            document.getElementById('initialLoad').innerText = setAverage(1, (t2 - t1));
+        }
+    </script>
+</head>
+<body onload="load()">
+    <h2>
+        JS based XSLT</h2>
+    <div>
+        <div>
+            <span>Initial: </span><span id="initialLoad"></span>
+        </div>
+        <div>
+            <span>Model 1 Average: </span><span id="model1"></span>
+        </div>
+        <div>
+            <span>Model 2 Average: </span><span id="model2"></span>
+        </div>
+        <div>
+            <span>Model 3 Average: </span><span id="model3"></span>
+        </div>
+    </div>
+    <div id="container">
+    </div>
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
 
-                    setInterval(function () {
-                        
-                        if (modelNumber == 1) {
-                            console.log("Update to model 1");
-                            displayResult('CatModel1.xml');
-                            modelNumber = 2;
-                            
-                            document.getElementById("model1").innerText = setAverage(1, (t2 - t1));
-                        } else if (modelNumber == 2) {
-                            console.log("Update to model 2");
-                            displayResult('CatModel2.xml');
-                            modelNumber = 3;
-                            
-                            document.getElementById("model2").innerText = setAverage(2, (t2 - t1));
-                        } else if (modelNumber == 3) {
-                            console.log("Update to model 3");
-                            displayResult('CatModel3.xml');
-                            modelNumber = 1;
-                            
-                            document.getElementById("model3").innerText = setAverage(3, (t2 - t1));
-                        }
-                    }, 5000);
-                })
-            </script>
-	    </body>
-    </html>
+            var modelNumber = 2;
+
+            setInterval(function () {
+
+                if (modelNumber == 1) {
+                    console.log("Update to model 1");
+                    displayResult('CatModel1.xml');
+                    modelNumber = 2;
+
+                    document.getElementById("model1").innerText = setAverage(1, (t2 - t1));
+                } else if (modelNumber == 2) {
+                    console.log("Update to model 2");
+                    displayResult('CatModel2.xml');
+                    modelNumber = 3;
+
+                    document.getElementById("model2").innerText = setAverage(2, (t2 - t1));
+                } else if (modelNumber == 3) {
+                    console.log("Update to model 3");
+                    displayResult('CatModel3.xml');
+                    modelNumber = 1;
+
+                    document.getElementById("model3").innerText = setAverage(3, (t2 - t1));
+                }
+            }, 5000);
+        })
+    </script>
 </body>
 </html>
+</body> </html> 

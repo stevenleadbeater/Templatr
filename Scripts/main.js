@@ -1,5 +1,8 @@
-﻿var t1 = window.performance.now();
-
+﻿try{
+var t1 = window.performance.now();
+} catch (ex) {
+    var t1 = new Date().getTime();
+}
 var averages = {
     model1: {
         count: 0,
@@ -491,32 +494,50 @@ catTemplate += '</repeater>';
 
     var view = Templatr.bind(catTemplate, CatModel);
     document.body.appendChild(view);
-
+    try{
     var t2 = window.performance.now();
+    } catch(ex) {
+          var t2 = new Date().getTime();
+          }
     document.getElementById("model1").innerText = setAverage(1, (t2 - t1));
     document.getElementById("initialLoad").innerText = setAverage(1, (t2 - t1));
     var modelNumber = 2;
 
     setInterval(function () {
+        try{
         var t1 = window.performance.now();
-
+        } catch(ex) {
+          var t1 = new Date().getTime();
+          }
         if (modelNumber == 1) {
             console.log("Update to model 1");
             Templatr.updateDataModel(CatModel1);
             modelNumber = 2;
+            try{
             var t2 = window.performance.now();
+            } catch(ex) {
+          var t2 = new Date().getTime();
+          }
             document.getElementById("model1").innerText = setAverage(1, (t2 - t1));
         } else if (modelNumber == 2) {
             console.log("Update to model 2");
             Templatr.updateDataModel(CatModel2);
             modelNumber = 3;
+            try{
             var t2 = window.performance.now();
+            } catch(ex) {
+          var t2 = new Date().getTime();
+          }
             document.getElementById("model2").innerText = setAverage(2, (t2 - t1));
         } else if (modelNumber == 3) {
             console.log("Update to model 3");
             Templatr.updateDataModel(CatModel3);
             modelNumber = 1;
+            try{
             var t2 = window.performance.now();
+            } catch(ex) {
+          var t2 = new Date().getTime();
+          }
             document.getElementById("model3").innerText = setAverage(3, (t2 - t1));
         }
 

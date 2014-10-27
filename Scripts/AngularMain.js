@@ -1,5 +1,8 @@
-﻿var t1 = window.performance.now();
-
+﻿try {
+    var t1 = window.performance.now();
+} catch (ex) {
+    var t1 = new Date().getTime();
+}
 var averages = {
     model1: {
         count: 0,
@@ -26,8 +29,11 @@ var setAverage = function (modelNumber, timeElapsed) {
 angular.module('catApp', [])
   .controller('catController', ['$scope', function ($scope) {
       $scope.cats = CatModel1;
-
-      var t2 = window.performance.now();
+      try {
+          var t2 = window.performance.now();
+      } catch (ex) {
+          var t2 = new Date().getTime();
+      }
       document.getElementById("model1").innerText = setAverage(1, (t2 - t1));
       document.getElementById("initialLoad").innerText = setAverage(1, (t2 - t1));
 
@@ -38,8 +44,11 @@ angular.module('catApp', [])
       var modelNumber = 2;
 
       setInterval(function () {
+            try{
           var t1 = window.performance.now();
-
+      } catch (ex) {
+          var t1 = new Date().getTime();
+      }
           if (modelNumber == 1) {
               console.log("Update to model 1");
 
@@ -52,7 +61,11 @@ angular.module('catApp', [])
 
               modelNumber = 2;
 
+              try{
               var t2 = window.performance.now();
+          } catch (ex) {
+              var t2 = new Date().getTime();
+          }
               document.getElementById("model1").innerText = setAverage(1, (t2 - t1));
           } else if (modelNumber == 2) {
               console.log("Update to model 2");
@@ -65,8 +78,11 @@ angular.module('catApp', [])
               });
 
               modelNumber = 3;
-
+              try{
               var t2 = window.performance.now();
+          } catch (ex) {
+              var t2 = new Date().getTime();
+          }
               document.getElementById("model2").innerText = setAverage(2, (t2 - t1));
           } else if (modelNumber == 3) {
               console.log("Update to model 3");
@@ -80,7 +96,11 @@ angular.module('catApp', [])
 
               modelNumber = 1;
 
+              try{
               var t2 = window.performance.now();
+          } catch (ex) {
+              var t2 = new Date().getTime();
+          }
               document.getElementById("model3").innerText = setAverage(3, (t2 - t1));
           }
 
@@ -89,7 +109,7 @@ angular.module('catApp', [])
 
   } ]);
 
-  
+
 var CatModel1 = [
     {
         name: "terry",
