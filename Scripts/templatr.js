@@ -64,13 +64,13 @@
         //For each root level element in the template
         for (var i = 0, len = HtmlParser.children.length; i < len; i++) {
 
-
-            if (HtmlParser.children[i].tagName == "REPEATER") {
+            var child = HtmlParser.children[i];
+            if (child.tagName == "REPEATER") {
                 //bind repeater
-                returnValue.appendChild(global.Templatr.bindRepeater(HtmlParser.children[i], data, ""));
+                returnValue.appendChild(global.Templatr.bindRepeater(child, data, ""));
             } else {
                 //bind element
-                returnValue.appendChild(global.Templatr.bindElement(HtmlParser.children[i], data, ""));
+                returnValue.appendChild(global.Templatr.bindElement(child, data, ""));
             }
         }
         //Document fragment with all the top level elements bound from the template
@@ -105,10 +105,11 @@
         for (var i = 0; i < len; i++) {
 
             //For each child of the repeater
-            for (var j = 0, lenJ = repeater.children.length; j < lenJ; j++) {
+            var children = repeater.children;
+            for (var j = 0, lenJ = children.length; j < lenJ; j++) {
 
                 //Bind the child to the model
-                returnValue.appendChild(global.Templatr.bindElement(repeater.children[j].cloneNode(true), data[i], dataAccessor + i.toString()));
+                returnValue.appendChild(global.Templatr.bindElement(children[j].cloneNode(true), data[i], dataAccessor + i.toString()));
             }
         }
         return returnValue;
@@ -124,9 +125,10 @@
 
         /*Look through each attribute on the element and see if there are binding statements
         in the value*/
-        for (var i = 0, attribLength = element.attributes.length; i < attribLength; i++) {
+        var attributes = element.attributes;
+        for (var i = 0, attribLength = attributes.length; i < attribLength; i++) {
 
-            var attrib = element.attributes[i];
+            var attrib = attributes[i];
 
             // Check for binding statements and process as applicable
             if (global.Templatr.Pattern.exec(attrib.value) != null) {
@@ -137,8 +139,9 @@
         if (len == 0) {
 
             // Check for binding statements and process as applicable
-            if (element.childNodes[0] && global.Templatr.Pattern.exec(element.childNodes[0].nodeValue) != null) {
-                element.childNodes[0].nodeValue = global.Templatr.bindingReplacement(element.childNodes[0].nodeValue, data, dataAccessor, "innerText");
+            var textNode = element.childNodes[0]
+            if (textNode && global.Templatr.Pattern.exec(textNode.nodeValue) != null) {
+                textNode.nodeValue = global.Templatr.bindingReplacement(textNode.nodeValue, data, dataAccessor, "innerText");
                 didBind = true;
             }
         }
@@ -165,23 +168,25 @@
             for (var i = 0; i < len; i++) {
 
                 //Sub repeater support
-                if (element.children[i].tagName == "REPEATER") {
+                var child = element.children[i];
+                if (child.tagName == "REPEATER") {
 
                     //This is the property name of an array
-                    var dataSource = global.Templatr.Pattern.exec(element.children[i].getAttribute("DataSource"));
+                    var dataSource = global.Templatr.Pattern.exec(child.getAttribute("DataSource"));
 
                     if (dataSource != null) {
 
                         //Repeater is bound
-                        var repeaterResult = global.Templatr.bindRepeater(element.children[i], data[dataSource[1].replace(/^\s+|\s+$/gm, '')], dataAccessor + "." + dataSource[1].replace(/^\s+|\s+$/gm, ''));
+                        dataSource = dataSource[1].replace(/^\s+|\s+$/gm, '');
+                        var repeaterResult = global.Templatr.bindRepeater(child, data[dataSource], dataAccessor + "." + dataSource);
 
                         //Swap the template element for the bound element
-                        element.removeChild(element.children[i]);
+                        element.removeChild(child);
                         element.appendChild(repeaterResult);
                     }
                 } else {
                     //This is just a nested element, call my self recursively passing the child element to be bound
-                    global.Templatr.bindElement(element.children[i], data, dataAccessor);
+                    global.Templatr.bindElement(child, data, dataAccessor);
                 }
             }
         }
@@ -211,12 +216,13 @@
             var targetForReplacement = propertyToBind[0];
 
             //We can't bind to a property that isn't at the right level in the data. Check and error on fail
-            if (data[propertyName]) {
-                stringToReplaceIn = stringToReplaceIn.replace(targetForReplacement, data[propertyName]);
+            var sourceData = data[propertyName];
+            if (sourceData) {
+                stringToReplaceIn = stringToReplaceIn.replace(targetForReplacement, sourceData);
 
                 var bindingLog = global.Templatr.createBindingReference("templatr" + global.Templatr.currentElementId, "bindingReplacement", dataAccessor + "." + propertyName);
                 bindingLog["oldValue"] = targetForReplacement;
-                bindingLog["boundValue"] = data[propertyName];
+                bindingLog["boundValue"] = sourceData;
                 bindingLog["replacementType"] = replacementType;
 
                 global.Templatr.bindings[dataAccessor + "." + propertyName] = bindingLog;
@@ -275,10 +281,11 @@
         returnValue = global.Templatr.setElementId(returnValue);
 
         //For each HTML element inside the repeater
-        for (var j = 0, lenJ = repeater.children.length; j < lenJ; j++) {
+        var children = repeater.children;
+        for (var j = 0, lenJ = children.length; j < lenJ; j++) {
 
             //Bind the HTML element to the data
-            var element = global.Templatr.bindElement(repeater.children[j].cloneNode(true), data, dataAccessor);
+            var element = global.Templatr.bindElement(children[j].cloneNode(true), data, dataAccessor);
 
             //Append the child to the container
             returnValue.appendChild(element);
@@ -298,10 +305,11 @@
         var returnValue = document.createDocumentFragment();
 
         //For each HTML element inside the repeater
-        for (var j = 0, lenJ = repeater.children.length; j < lenJ; j++) {
+        var children = repeater.children;
+        for (var j = 0, lenJ = children.length; j < lenJ; j++) {
 
             //Bind the HTML element to the data
-            var element = global.Templatr.bindElement(repeater.children[j].cloneNode(true), data, dataAccessor);
+            var element = global.Templatr.bindElement(children[j].cloneNode(true), data, dataAccessor);
 
             //Append the child to the container
             returnValue.appendChild(element);
@@ -372,16 +380,17 @@
             while (updateTarget.length > newDataModel.length) {
 
                 //Start removing elements from the end of the DOM at this level until our model lengths match
-                for (var i = 0, len = Templatr.bindings[dataAccessor + "." + (updateTarget.length - 1)].length; i < len; i++) {
+                var targetAccessor = dataAccessor + "." + (updateTarget.length - 1);
+                var bindingsArray = Templatr.bindings[targetAccessor];
+                for (var i = 0, len = bindingsArray.length; i < len; i++) {
 
                     //Find and remove DOM element
-                    var element = Templatr.bindings[dataAccessor + "." + (updateTarget.length - 1)][i].element;
+                    var element = bindingsArray[i].element;
                     element.parentElement.removeChild(element);
 
                 }
 
-                //Remove parent binding reference
-                var targetAccessor = dataAccessor + "." + (updateTarget.length - 1);
+                //Remove parent binding reference                
                 delete Templatr.bindings[targetAccessor];
 
                 //Update model
