@@ -545,4 +545,4 @@ catTemplate += '</repeater>';
 
 
 
-    }, 5000);
+    }, 1000);
