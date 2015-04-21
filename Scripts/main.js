@@ -492,7 +492,8 @@ catTemplate += '        </div>';
 catTemplate += '    </div>';
 catTemplate += '</repeater>';
 
-    var view = Templatr.bind(catTemplate, CatModel);
+    var templatr = new Templatr("test");
+    var view = templatr.bind(catTemplate, CatModel);
     document.body.appendChild(view);
     try{
     var t2 = window.performance.now();
@@ -511,7 +512,7 @@ catTemplate += '</repeater>';
           }
         if (modelNumber == 1) {
             console.log("Update to model 1");
-            Templatr.updateDataModel(CatModel1);
+            templatr.updateDataModel(CatModel1);
             modelNumber = 2;
             try{
             var t2 = window.performance.now();
@@ -521,7 +522,7 @@ catTemplate += '</repeater>';
             document.getElementById("model1").innerText = setAverage(1, (t2 - t1));
         } else if (modelNumber == 2) {
             console.log("Update to model 2");
-            Templatr.updateDataModel(CatModel2);
+            templatr.updateDataModel(CatModel2);
             modelNumber = 3;
             try{
             var t2 = window.performance.now();
@@ -531,7 +532,7 @@ catTemplate += '</repeater>';
             document.getElementById("model2").innerText = setAverage(2, (t2 - t1));
         } else if (modelNumber == 3) {
             console.log("Update to model 3");
-            Templatr.updateDataModel(CatModel3);
+            templatr.updateDataModel(CatModel3);
             modelNumber = 1;
             try{
             var t2 = window.performance.now();
