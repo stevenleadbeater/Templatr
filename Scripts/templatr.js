@@ -144,22 +144,24 @@ Templatr.prototype.bindRepeater = function (repeater, data, dataAccessor) {
     //Number of iterations in the data repeater will go through
     var len = data.length;
 
-    if (makeLog) {
-        //Set the id on the repeater container
-        if (repeater.id === "" || /^[0-9.]+/.exec(dataAccessor) !== null) {
-            returnValue = this.setElementId(returnValue);
-        } else {
-            returnValue.id = repeater.id;
-        }
-
-        //Create the binding reference object entry to save in this.bindings
-        var bindingLog = this.createBindingReference(returnValue.id, "repeater", dataAccessor);
-        bindingLog["len"] = len;
-        bindingLog["repeater"] = repeater;
-
-        //Save the binding reference
-        this.bindings[dataAccessor] = bindingLog;
+    //if (makeLog) {
+    //Set the id on the repeater container
+    if (repeater.id === "" || /^[0-9.]+/.exec(dataAccessor) !== null) {
+        returnValue = this.setElementId(returnValue);
+    } else {
+        returnValue.id = repeater.id;
     }
+
+    //Create the binding reference object entry to save in this.bindings
+    var bindingLog = this.createBindingReference(returnValue.id, "repeater", dataAccessor);
+    bindingLog["len"] = len;
+    bindingLog["repeater"] = repeater;
+    bindingLog["element"] = returnValue;
+
+    //Save the binding reference in the repeaters array of references
+    this.bindings[dataAccessor] = this.bindings[dataAccessor] || [];
+    this.bindings[dataAccessor].push(bindingLog);
+    //}
     //The top level repeater has no starting namespace this.bindings[""] to access it's bindings
     if (dataAccessor != "") {
         dataAccessor += "."
@@ -244,20 +246,20 @@ Templatr.prototype.bindElement = function (element, data, dataAccessor) {
         }
     }
 
-    if (didBind) {
+    //if (didBind) {
 
-        //Set the id on the element
-        element = this.setElementId(element);
+    //Set the id on the element
+    element = this.setElementId(element);
 
-        //Create the binding reference to save in the repeaters array of references
-        var bindingLog = this.createBindingReference(element.id, "element", dataAccessor);
-        bindingLog["element"] = element;
+    //Create the binding reference to save in the repeaters array of references
+    var bindingLog = this.createBindingReference(element.id, "element", dataAccessor);
+    bindingLog["element"] = element;
 
-        //Save the binding reference in the repeaters array of references
-        this.bindings[dataAccessor] = this.bindings[dataAccessor] || [];
-        this.bindings[dataAccessor].push(bindingLog);
+    //Save the binding reference in the repeaters array of references
+    this.bindings[dataAccessor] = this.bindings[dataAccessor] || [];
+    this.bindings[dataAccessor].push(bindingLog);
 
-    }
+    //}
 
     //If this is a container (has child nodes)
     if (len > 0) {
@@ -568,14 +570,29 @@ Templatr.prototype.updateDataModel = function (newDataModelParameter) {
         } else {
 
             this.Model[p] = newDataModel[p];
+
             var binding = this.bindings[""];
 
-            if (this.parentOfTopLevel === null) {
+            if (Object.prototype.toString.call(binding) === "[object Array]") {
+                //We need to add to our repeater
 
-                this.parentOfTopLevel = document.getElementById(binding.elementId);
+                var repElem;
+                for (var index = 0; index < binding.length; index++) {
+                    if (typeof binding[index].repeater !== "undefined") {
+                        repElem = document.getElementById(binding[index].elementId);
+                        repElem.appendChild(this.addToTopLevelRepeater(binding[index].repeater, newDataModel[p], p));
+                        break;
+                    }
+                }
+            } else {
+
+                if (this.parentOfTopLevel === null) {
+
+                    this.parentOfTopLevel = document.getElementById(binding.elementId);
+                }
+
+                this.parentOfTopLevel.appendChild(this.addToTopLevelRepeater(binding.repeater, newDataModel[p], p));
             }
-
-            this.parentOfTopLevel.appendChild(this.addToTopLevelRepeater(binding.repeater, newDataModel[p], p));
         }
     }
 };
@@ -690,6 +707,17 @@ Templatr.prototype._mergeRecursive = function (newDataModel, updateTarget, dataA
                 //We need to add to our repeater
                 var repElem = document.getElementById(binding.elementId);
                 repElem.appendChild(this.addToRepeater(binding.repeater, newDataModel[p], "." + dataAccessor + "." + p));
+            } else if (typeof (binding = this.bindings["." + dataAccessor]) !== "undefined" && Object.prototype.toString.call(binding) === "[object Array]") {
+                //We need to add to our repeater
+
+                var repElem;
+                for (var index = 0; index < binding.length; index++) {
+                    if (typeof binding[index].repeater !== "undefined") {
+                        repElem = document.getElementById(binding[index].elementId);
+                        repElem.appendChild(this.addToRepeater(binding[index].repeater, newDataModel[p], "." + dataAccessor + "." + p));
+                        break;
+                    }
+                }
             }
         }
     }
