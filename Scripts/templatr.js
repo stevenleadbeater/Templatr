@@ -36,6 +36,12 @@
     this.Model = {};
 
     /*
+    The list of views in this template
+    */
+
+    this.views = {};
+
+    /*
     This is the regex pattern used to indentify the binding statements. Change at will, 
     the start tag is <%#, the end tag is %> replace those 2 below with whatever you please.
     eg. /{{([^%>]*)}}/ for mustache style statements.
@@ -67,9 +73,15 @@ Templatr.prototype.bind = function (template, data) {
     //We are creating a view for the first time so store the data
     this._cloneObject(this.Model, data);
 
+    return this.bindTemplate(template, data, "");
+};
+
+Templatr.prototype.bindTemplate = function (template, data, dataAccessor) {
+
+
     //Templates are passed as strings to support AJAX responses. Parse to DOM objects
     var HtmlParser = document.createElement("div");
-    HtmlParser.innerHTML = template;
+    HtmlParser.innerHTML = this.views[template];
 
     //Container to hold DOM content to be returned
     var returnValue = document.createDocumentFragment();
@@ -80,14 +92,23 @@ Templatr.prototype.bind = function (template, data) {
         var child = HtmlParser.children[i];
         if (child.tagName == "REPEATER" || child.tagName == "SELECT" || child.tagName == "UL" || child.tagName == "TR" || child.tagName == "TBODY") {
             //bind repeater
-            returnValue.appendChild(this.bindRepeater(child, data, ""));
+            returnValue.appendChild(this.bindRepeater(child, data, dataAccessor));
         } else {
             //bind element
-            returnValue.appendChild(this.bindElement(child, data, ""));
+            returnValue.appendChild(this.bindElement(child, data, dataAccessor));
         }
     }
     //Document fragment with all the top level elements bound from the template
     return returnValue;
+};
+
+Templatr.prototype.addView = function (name, view) {
+
+    if (typeof this.views[name] !== "undefined") {
+        throw name + " already exists";
+    }
+
+    this.views[name] = view;
 };
 
 Templatr.prototype.copyAttributes = function (elementTo, elementFrom) {
@@ -215,16 +236,30 @@ Templatr.prototype.bindElement = function (element, data, dataAccessor) {
     for (var i = 0, attribLength = attributes.length; i < attribLength; i++) {
 
         var attrib = attributes[i];
+        var propertyToBind = this.Pattern.exec(attrib.value);
 
         // Check for binding statements and process as applicable
-        if (this.Pattern.exec(attrib.value) != null) {
-            var temp = attrib.value;
-            attrib.value = this.bindingReplacement(attrib.value, data, dataAccessor, attrib.name);
-            didBind = true;
+        if (propertyToBind != null) {
 
-            //ie fix for select options display text
-            if (attrib.name === "value" && element.childNodes.length === 0) {
-                element.appendChild(this.bindingReplacementNodeValue(temp, data, dataAccessor, "innerText"));
+            var viewIdAttribute = element.getAttribute("data-templatr-view-id");
+            if (typeof viewIdAttribute !== "undefined"
+                &&
+                attrib.name === "datasource") {
+
+                /*trim - ie8 compatible allows <%# prop_name %> and <%#prop_name%> to be used interchangably and mixed
+                index 1 of the regex exec return is what is found between the '<%#' and '%>'*/
+                var propertyName = propertyToBind[1].replace(/^\s+|\s+$/gm, "");
+
+                element.appendChild(this.bindTemplate(viewIdAttribute, data[propertyName], dataAccessor + "." + propertyName));
+            } else {
+                var temp = attrib.value;
+                attrib.value = this.bindingReplacement(attrib.value, data, dataAccessor, attrib.name);
+                didBind = true;
+
+                //ie fix for select options display text
+                if (attrib.name === "value" && element.childNodes.length === 0) {
+                    element.appendChild(this.bindingReplacementNodeValue(temp, data, dataAccessor, "innerText"));
+                }
             }
         }
     }

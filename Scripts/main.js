@@ -492,8 +492,9 @@ catTemplate += '        </div>';
 catTemplate += '    </div>';
 catTemplate += '</repeater>';
 
-    var templatr = new Templatr("test");
-    var view = templatr.bind(catTemplate, CatModel);
+var templatr = new Templatr("test");
+templatr.addView("catTemplate", catTemplate);
+    var view = templatr.bind("catTemplate", CatModel);
     document.body.appendChild(view);
     try{
     var t2 = window.performance.now();
