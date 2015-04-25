@@ -90,6 +90,15 @@ Templatr.prototype.bind = function (template, data) {
     return returnValue;
 };
 
+Templatr.prototype.copyAttributes = function (elementTo, elementFrom) {
+    for (var i = 0, len = elementFrom.attributes.length; i < len; i++) {
+
+        if (elementFrom.attributes[i].name.toLowerCase() !== "datasource") {
+            elementTo.setAttribute(elementFrom.attributes[i].name, elementFrom.attributes[i].value);
+        }
+    }
+};
+
 Templatr.prototype.bindRepeater = function (repeater, data, dataAccessor) {
 
     //Repeater contents as a whole are rendered inside a container
@@ -100,26 +109,31 @@ Templatr.prototype.bindRepeater = function (repeater, data, dataAccessor) {
         case "SELECT":
         case "select":
             returnValue = document.createElement("select");
+            this.copyAttributes(returnValue, repeater);
             makeLog = true;
             break;
         case "UL":
         case "ul":
             returnValue = document.createElement("ul");
+            this.copyAttributes(returnValue, repeater);
             makeLog = true;
             break;
         case "TR":
         case "tr":
             returnValue = document.createElement("tr");
+            this.copyAttributes(returnValue, repeater);
             makeLog = true;
             break;
         case "TBODY":
         case "tbody":
             returnValue = document.createElement("tbody");
+            this.copyAttributes(returnValue, repeater);
             makeLog = true;
             break;
         case "REPEATER":
         case "repeater":
             returnValue = document.createElement("div");
+            this.copyAttributes(returnValue, repeater);
             makeLog = true;
             break;
         default:
