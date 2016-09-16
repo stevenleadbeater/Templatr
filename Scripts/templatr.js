@@ -5,7 +5,7 @@
     for binding (using array indexes as namespaces too) is the key under which each binding reference 
     is saved.
     
-    Repeaters create 2 seperate entries:
+    Repeaters create 2 separate entries:
     1. an array of each of the elements created under the index 
     2. an object specifying:
     i. the number of children
@@ -41,7 +41,7 @@
     this.views = {};
 
     /*
-    This is the regex pattern used to indentify the binding statements. Change at will, 
+    This is the regex pattern used to identify the binding statements. Change at will,
     the start tag is {{, the end tag is }} replace those 2 below with whatever you please.
     eg. /{{([^}}]*)}}/ for mustache style statements.
     */
@@ -49,9 +49,7 @@
 
     this.parentOfTopLevel = null;
 
-};
-
-
+}
 /**
 * @public Returns a div containing the result of applying the data parameter to the template
 * @param {string} [template] HTML markup containing repeater tags and data binding statements
@@ -234,10 +232,10 @@ Templatr.prototype.bindElement = function (element, data, dataAccessor) {
     /*Look through each attribute on the element and see if there are binding statements
     in the value*/
     var attributes = element.attributes;
-    for (var i = 0, attribLength = attributes.length; i < attribLength; i++) {
+    for (var i = 0, attributeLength = attributes.length; i < attributeLength; i++) {
 
-        var attrib = attributes[i];
-        var propertyToBind = this.Pattern.exec(attrib.value);
+        var attribute = attributes[i];
+        var propertyToBind = this.Pattern.exec(attribute.value);
 
         // Check for binding statements and process as applicable
         if (propertyToBind != null) {
@@ -245,7 +243,7 @@ Templatr.prototype.bindElement = function (element, data, dataAccessor) {
             var viewIdAttribute = element.getAttribute("data-templatr-view-id");
             if (typeof viewIdAttribute !== "undefined"
                 &&
-                attrib.name === "datasource") {
+                attribute.name === "datasource") {
 
                 /*trim - ie8 compatible allows {{ prop_name }} and {{prop_name}} to be used interchangably and mixed
                 index 1 of the regex exec return is what is found between the '{{' and '}}'*/
@@ -253,12 +251,12 @@ Templatr.prototype.bindElement = function (element, data, dataAccessor) {
 
                 element.appendChild(this.bindTemplate(viewIdAttribute, data[propertyName], dataAccessor + "." + propertyName));
             } else {
-                var temp = attrib.value;
-                attrib.value = this.bindingReplacement(attrib.value, data, dataAccessor, attrib.name);
+                var temp = attribute.value;
+                attribute.value = this.bindingReplacement(attribute.value, data, dataAccessor, attribute.name);
                 didBind = true;
 
                 //ie fix for select options display text
-                if (element.tagName === "OPTION" && attrib.name === "value" && element.childNodes.length === 0) {
+                if (element.tagName === "OPTION" && attribute.name === "value" && element.childNodes.length === 0) {
                     element.appendChild(this.bindingReplacementNodeValue(temp, data, dataAccessor, "innerText"));
                 }
             }
@@ -280,7 +278,7 @@ Templatr.prototype.bindElement = function (element, data, dataAccessor) {
         if (nodeValue != null) {
             element.removeChild(element.childNodes[0]);
             element.appendChild(this.bindingReplacementNodeValue(nodeValue, data, dataAccessor, "innerText"));
-            didBind = true;
+            //didBind = true;
         }
     }
 
@@ -305,10 +303,10 @@ Templatr.prototype.bindElement = function (element, data, dataAccessor) {
     if (len > 0) {
 
         //For each child node
-        for (var i = 0; i < len; i++) {
+        for (var j = 0; j < len; j++) {
 
             //Sub repeater support
-            var child = element.children[i];
+            var child = element.children[j];
             if (typeof child.attributes["data-repeater"] !== "undefined" && child.attributes["data-repeater"].value === "templatr") {
 
                 //This is the property name of an array
@@ -347,7 +345,6 @@ Templatr.prototype.bindElement = function (element, data, dataAccessor) {
 Templatr.prototype.bindingReplacement = function (stringToReplaceIn, data, dataAccessor, replacementType) {
 
     var propertyToBind;
-    var replacements = [];
 
     /*stringToReplaceIn is iterated over using regex to find the first remaining match for data binding statements
     in each iteration*/
@@ -374,11 +371,12 @@ Templatr.prototype.bindingReplacement = function (stringToReplaceIn, data, dataA
 
         //We can't bind to a property that isn't at the right level in the data. Check and error on fail
         var sourceData = typeof data[propertyName] !== "undefined" && data[propertyName] !== null ? data[propertyName].toString() : null;
+        var bindingLog;
         if (sourceData) {
 
             stringToReplaceIn = stringToReplaceIn.replace(targetForReplacement, sourceData);
 
-            var bindingLog = this.createBindingReference(this.namespace + this.currentElementId, "bindingReplacement", dataAccessor + "." + propertyName);
+            bindingLog = this.createBindingReference(this.namespace + this.currentElementId, "bindingReplacement", dataAccessor + "." + propertyName);
             bindingLog["oldValue"] = targetForReplacement;
             bindingLog["boundValue"] = sourceData;
             bindingLog["replacementType"] = replacementType;
@@ -389,7 +387,7 @@ Templatr.prototype.bindingReplacement = function (stringToReplaceIn, data, dataA
 
             stringToReplaceIn = "";
 
-            var bindingLog = this.createBindingReference(this.namespace + this.currentElementId, "bindingReplacement", dataAccessor + "." + propertyName);
+            bindingLog = this.createBindingReference(this.namespace + this.currentElementId, "bindingReplacement", dataAccessor + "." + propertyName);
             bindingLog["oldValue"] = targetForReplacement;
             bindingLog["boundValue"] = "";
             bindingLog["replacementType"] = replacementType;
@@ -404,7 +402,6 @@ Templatr.prototype.bindingReplacementNodeValue = function (stringToReplaceIn, da
 
     var returnValue = document.createDocumentFragment();
     var propertyToBind;
-    var replacements = [];
 
     /*stringToReplaceIn is iterated over using regex to find the first remaining match for data binding statements
     in each iteration*/
@@ -431,6 +428,7 @@ Templatr.prototype.bindingReplacementNodeValue = function (stringToReplaceIn, da
 
         //We can't bind to a property that isn't at the right level in the data. Check and error on fail
         var sourceData = data[propertyName];
+        var bindingLog;
         if (typeof sourceData !== "undefined") {
 
             //Account for line breaks
@@ -449,14 +447,13 @@ Templatr.prototype.bindingReplacementNodeValue = function (stringToReplaceIn, da
                         returnValue.appendChild(document.createElement("br"));
                     }
                 }
-                //TODO: address this hack to stop the loop
                 stringToReplaceIn = "";
             } else {
                 stringToReplaceIn = stringToReplaceIn.replace(targetForReplacement, sourceData);
                 returnValue.appendChild(document.createTextNode(stringToReplaceIn));
             }
 
-            var bindingLog = this.createBindingReference(this.namespace + this.currentElementId, "bindingReplacement", dataAccessor + "." + propertyName);
+            bindingLog = this.createBindingReference(this.namespace + this.currentElementId, "bindingReplacement", dataAccessor + "." + propertyName);
             bindingLog["oldValue"] = targetForReplacement;
             bindingLog["boundValue"] = sourceData;
             bindingLog["replacementType"] = replacementType;
@@ -467,7 +464,7 @@ Templatr.prototype.bindingReplacementNodeValue = function (stringToReplaceIn, da
 
             stringToReplaceIn = "";
 
-            var bindingLog = this.createBindingReference(this.namespace + this.currentElementId, "bindingReplacement", dataAccessor + "." + propertyName);
+            bindingLog = this.createBindingReference(this.namespace + this.currentElementId, "bindingReplacement", dataAccessor + "." + propertyName);
             bindingLog["oldValue"] = targetForReplacement;
             bindingLog["boundValue"] = "";
             bindingLog["replacementType"] = replacementType;
@@ -489,19 +486,17 @@ Templatr.prototype.setElementId = function (element) {
     this.currentElementId++;
 
     return element;
-}
+};
 
 Templatr.prototype.createBindingReference = function (elementId, type, dataAccessor) {
 
     //Base information held in every binding reference
-    var bindingLog = {
+    return {
         elementId: elementId,
         dataAccessor: dataAccessor,
         type: type
-    }
-
-    return bindingLog;
-}
+    };
+};
 
 Templatr.prototype.addToRepeater = function (repeater, data, dataAccessor) {
 
@@ -606,8 +601,9 @@ Templatr.prototype.updateDataModel = function (newDataModel) {
     } else if (Object.prototype.toString.call(newDataModel) === "[object Object]") {
 
         for (var p in newDataModel) {
-
-            this._updateTopLevelDataModelProperty(newDataModel, p);
+            if(newDataModel.hasOwnProperty(p)) {
+                this._updateTopLevelDataModelProperty(newDataModel, p);
+            }
         }
     }
 };
@@ -698,7 +694,7 @@ Templatr.prototype._mergeRecursive = function (newDataModel, updateTarget, dataA
     } else if (Object.prototype.toString.call(newDataModel) === "[object Object]") {
 
         for (var p in newDataModel) {
-
+            if(!newDataModel.hasOwnProperty(p)){ continue; }
             this._updateModelProperty(newDataModel, p, updateTarget, dataAccessor);
         }
     }
@@ -737,10 +733,12 @@ Templatr.prototype._updateModelProperty = function (newDataModel, p, updateTarge
 };
 
 Templatr.prototype._updateBinding = function (binding, p, newDataModel, dataAccessor) {
+
+    var elem;
     if (binding && binding.type == "bindingReplacement") {
 
         //Found it and it's a binding statement, get the element
-        var elem = document.getElementById(binding.elementId);
+        elem = document.getElementById(binding.elementId);
 
         //Make sure this value is actually different before attacking the DOM
         if (binding.replacementType == "innerText" && binding.boundValue != newDataModel[p]) {
@@ -763,7 +761,7 @@ Templatr.prototype._updateBinding = function (binding, p, newDataModel, dataAcce
     } else if (typeof (binding = this.bindings["." + dataAccessor]) !== "undefined" && binding.type == "bindingReplacement") {
 
         //Found it and it's a binding statement, get the element
-        var elem = document.getElementById(binding.elementId);
+        elem = document.getElementById(binding.elementId);
 
         //Make sure this value is actually different before attacking the DOM
         if (binding.replacementType === "innerText" && binding.boundValue != newDataModel) {
@@ -778,7 +776,7 @@ Templatr.prototype._updateBinding = function (binding, p, newDataModel, dataAcce
     } else if (typeof (binding = this.bindings["." + dataAccessor + "." + p]) !== "undefined" && binding.type === "bindingReplacement") {
 
         //Found it and it's a binding statement, get the element
-        var elem = document.getElementById(binding.elementId);
+        elem = document.getElementById(binding.elementId);
 
         //Make sure this value is actually different before attacking the DOM
         if (binding.replacementType == "innerText" && binding.boundValue != newDataModel[p]) {
@@ -792,16 +790,14 @@ Templatr.prototype._updateBinding = function (binding, p, newDataModel, dataAcce
         }
     } else if (typeof (binding = this.bindings["." + dataAccessor]) !== "undefined" && binding.type == "repeater") {
         //We need to add to our repeater
-        var repElem = document.getElementById(binding.elementId);
-        repElem.appendChild(this.addToRepeater(binding.repeater, newDataModel[p], "." + dataAccessor + "." + p));
+        elem = document.getElementById(binding.elementId);
+        elem.appendChild(this.addToRepeater(binding.repeater, newDataModel[p], "." + dataAccessor + "." + p));
     } else if (typeof (binding = this.bindings["." + dataAccessor]) !== "undefined" && Object.prototype.toString.call(binding) === "[object Array]") {
         //We need to add to our repeater
-
-        var repElem;
         for (var index = 0; index < binding.length; index++) {
             if (typeof binding[index].repeater !== "undefined") {
-                repElem = document.getElementById(binding[index].elementId);
-                repElem.appendChild(this.addToRepeater(binding[index].repeater, newDataModel[p], "." + dataAccessor + "." + p));
+                elem = document.getElementById(binding[index].elementId);
+                elem.appendChild(this.addToRepeater(binding[index].repeater, newDataModel[p], "." + dataAccessor + "." + p));
                 break;
             }
         }
