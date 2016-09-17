@@ -6,8 +6,8 @@
   "scripts": {
     "test": "jasmine JASMINE_CONFIG_PATH=spec/jasmine.json"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "steven leadbeater",
+  "license": "MIT",
   "dependencies": {
     "babel-register": "6.11.6",
     "babel-core": "^6.3.17",
