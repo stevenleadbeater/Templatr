@@ -697,6 +697,17 @@ Templatr.prototype._mergeRecursive = function (newDataModel, updateTarget, dataA
             if(!newDataModel.hasOwnProperty(p)){ continue; }
             this._updateModelProperty(newDataModel, p, updateTarget, dataAccessor);
         }
+    } else if (typeof this.bindings["." + dataAccessor] !== "undefined") {
+        var binding =  this.bindings["." + dataAccessor];
+        if (Object.prototype.toString.call(binding) === "[object Object]") {
+            this._updateBinding(binding, null, newDataModel, dataAccessor);
+        } else if (Object.prototype.toString.call(binding) === "[object Array]") {
+
+            for (var index = 0, length = binding.length; index < length; index++) {
+
+                this._updateBinding(binding[index], null, newDataModel, dataAccessor);
+            }
+        }
     }
 };
 
@@ -741,7 +752,8 @@ Templatr.prototype._updateBinding = function (binding, p, newDataModel, dataAcce
         elem = document.getElementById(binding.elementId);
 
         //Make sure this value is actually different before attacking the DOM
-        if (binding.replacementType == "innerText" && binding.boundValue != newDataModel[p]) {
+        if (binding.boundValue === newDataModel[p]) { return; }
+        if (binding.replacementType == "innerText") {
             //Elements value
             if (elem.childNodes.length === 0) {
                 var textNode = document.createTextNode(newDataModel[p]);
@@ -750,10 +762,14 @@ Templatr.prototype._updateBinding = function (binding, p, newDataModel, dataAcce
                 elem.childNodes[0].nodeValue = elem.childNodes[0].nodeValue.replace(binding.boundValue, newDataModel[p]);
             }
             binding.boundValue = newDataModel[p];
-        } else if (binding.boundValue != newDataModel[p]) {
+        } else if (typeof newDataModel[p] !== "undefined" && binding.boundValue != newDataModel[p]) {
             //attributes value or part of
             elem.attributes[binding.replacementType].value = elem.attributes[binding.replacementType].value.replace(binding.boundValue, " " + newDataModel[p]);
             binding.boundValue = newDataModel[p];
+        } else if (binding.boundValue != newDataModel) {
+            //attributes value or part of
+            elem.attributes[binding.replacementType].value = elem.attributes[binding.replacementType].value.replace(binding.boundValue, " " + newDataModel);
+            binding.boundValue = newDataModel;
         }
     } else if (typeof (binding = this.bindings[dataAccessor]) !== "undefined" && typeof binding.repeater !== "undefined") {
         //We need to add to our repeater
