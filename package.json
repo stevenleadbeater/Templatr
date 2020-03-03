@@ -16,7 +16,7 @@
     "babel-plugin-transform-decorators-legacy": "^1.2.0",
     "bootstrap": "3.3.7",
     "chance": "1.0.4",
-    "csv-parse": "1.1.7",
+    "csv-parse": "4.8.8",
     "glob": "7.0.5",
     "highcharts": "4.2.6",
     "http-status-codes": "1.0.6",
